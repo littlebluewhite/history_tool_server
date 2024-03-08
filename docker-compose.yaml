@@ -48,11 +48,11 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      CONN_SQL_HOST: mysql
-      CONN_REDIS_HOST: redis
-      CONN_INFLUXDB_HOST: influxdb
+      SQL_HOST: mysql
+      REDIS_HOST: redis
+      INFLUXDB_HOST: influxdb
     ports:
-      - "9330:9330"
+      - "9488:9488"
 #    volumes:
 #      - ./deploy/api/dockerLog:/app/log
     depends_on:
