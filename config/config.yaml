@@ -1,0 +1,30 @@
+redis:
+  host: 127.0.0.1
+  port: 6379
+  user:
+  password:
+  db: 0
+  is_cluster: False
+sql:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: 123456
+  db: test_db
+influxdb:
+  host: 192.168.1.11
+  port: 8086
+  org: my-org
+  token: my-super-influxdb-auth-token
+  bucket: node_object
+testSQL:
+  host: 127.0.0.1
+  port: 3306
+  user: root
+  password: 123456
+  db: test_db_test
+
+server:
+  port: 9488
+  rear_timeout: 300  # s
+  write_timeout: 300  # s

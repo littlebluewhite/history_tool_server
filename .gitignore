@@ -1,0 +1,4 @@
+/deploy/influxdb/
+/deploy/redis/
+/deploy/sql_mount/
+/.idea
