@@ -5,7 +5,6 @@ from fastapi.responses import JSONResponse
 
 import data.API.API_history
 from app.SQL.database import SQLDB
-from app.SQL import models
 from app.config.loader import ConfigLoader
 from function.exception import HistoryException
 from app.influxdb.influxdb import InfluxDB

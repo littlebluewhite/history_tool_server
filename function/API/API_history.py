@@ -30,7 +30,7 @@ class APIHistoryOperate(GeneralOperate):
                 fn = "last"
         stmt = f"""from(bucket:"node_object")
 |> range(start: {start}{stop_value})
-|> filter(fn: (r) => r._measurement == "object_value")
+|> filter(fn:(r) => r._measurement == "object_value")
 {id_value}
 {uid_value}
 {moving_value}
