@@ -11,7 +11,10 @@ from app.influxdb.influxdb import InfluxDB
 from app.redis_db.redis import RedisDB
 from routers.API.API_history import APIHistoryRouter
 
-app = FastAPI(title="history_tool", version="1.0.0")
+# config handle
+config = ConfigLoader("./config/config.yaml").get_config()
+
+app = FastAPI(title="history_tool", version=config["server"]["version"])
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,9 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# config handle
-config = ConfigLoader("./config/config.yaml").get_config()
 
 # redis_db
 redis_db = RedisDB(config["redis"]).redis_client()
