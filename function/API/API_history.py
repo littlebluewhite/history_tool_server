@@ -9,35 +9,35 @@ class APIHistoryOperate(GeneralOperate):
 
     def read_object_value_history(self, start: str, stop: str, _id: str = "",
                                   uid: str = "", period: str = "",
-                                  fn: FnEnum = FnEnum.mean):
-        stop_value = ""
+                                  fn: FnEnum = FnEnum.mean, skip: int = 0,
+                                  limit: int = None):
+        stop_str = ""
         if stop != "":
-            stop_value = f", stop : {stop}"
-        id_value = ""
+            stop_str = f", stop : {stop}"
+        id_str = ""
         if _id != "":
-            id_value = f"""|> filter(fn:(r) => r.id == "{_id}")"""
-        uid_value = ""
+            id_str = f"""|> filter(fn:(r) => r.id == "{_id}")"""
+        uid_str = ""
         if uid != "":
-            uid_value = f"""|> filter(fn:(r) => r.uid == "{uid}")"""
-        moving_value = ""
+            uid_str = f"""|> filter(fn:(r) => r.uid == "{uid}")"""
+        moving_str = ""
         match fn:
             case FnEnum.mean:
                 fn = "last"
-                moving_value = f"|> timedMovingAverage(every: {period}, period: {period})"
+                moving_str = f"|> timedMovingAverage(every: {period}, period: {period})"
             case FnEnum.max:
                 fn = "max"
             case FnEnum.last:
                 fn = "last"
         stmt = f"""from(bucket:"node_object")
-|> range(start: {start}{stop_value})
+|> range(start: {start}{stop_str})
 |> filter(fn:(r) => r._measurement == "object_value")
-{id_value}
-{uid_value}
-{moving_value}
+{id_str}
+{uid_str}
+{moving_str}
 |> aggregateWindow(every: {period}, fn: {fn})
 |> fill(usePrevious: true)
 """
-        print(stmt)
         data = self.query(q=stmt)
         result = []
         for table in data:
@@ -45,9 +45,13 @@ class APIHistoryOperate(GeneralOperate):
                 result.append(
                     {
                         "id": record.values.get("id"),
-                        "object_id": record.values.get("object_id"),
+                        "uid": record.values.get("uid"),
                         "value": record.get_value(),
                         "timestamp": record.get_time().timestamp(),
                     }
                 )
+        if limit is not None:
+            result = result[skip:skip + limit]
+        else:
+            result = result[skip:]
         return result
