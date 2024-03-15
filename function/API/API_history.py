@@ -37,10 +37,10 @@ class APIHistoryOperate(GeneralOperate):
 {moving_str}
 |> aggregateWindow(every: {period}, fn: {fn})
 |> fill(usePrevious: true)
-"""
-        data = self.query(q=stmt)
+|> filter(fn:(r) => r._field == "value")"""
+        d = self.query(q=stmt)
         result = []
-        for table in data:
+        for table in d:
             for record in table.records:
                 result.append(
                     {

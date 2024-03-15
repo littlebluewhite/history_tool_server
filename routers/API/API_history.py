@@ -26,8 +26,12 @@ class APIHistoryRouter(APIHistoryOperate):
                 start: str = Query(...), stop: str = Query(""), _id: str = Query(""),
                 uid: str = Query(""), period: str = Query("1h"), fn: FnEnum = Query(...),
                 skip: int = Query(0), limit: int = Query(None)):
-            data = self.read_object_value_history(start, stop, _id, uid, period, fn, skip, limit)
+            try:
+                data = self.read_object_value_history(start, stop, _id, uid, period, fn, skip, limit)
+                return JSONResponse(data)
             # return data
-            return JSONResponse(data)
+            except Exception as e:
+                print(e)
+                raise self.exc(status_code=499, detail=f"{e}")
 
         return router
