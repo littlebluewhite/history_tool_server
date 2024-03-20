@@ -34,4 +34,9 @@ class APIHistoryRouter(APIHistoryOperate):
                 print(e)
                 raise self.exc(status_code=499, detail=f"{e}")
 
+        @router.get("/object/fail_hour/")
+        async def get_fail_hour(_id: str = Query("")):
+            result = self.object_fail_hour(_id)
+            return JSONResponse(result)
+
         return router

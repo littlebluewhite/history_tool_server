@@ -1,3 +1,6 @@
+import math
+import time
+
 from data.enum.fn import FnEnum
 from function.General_operate import GeneralOperate
 
@@ -38,6 +41,49 @@ class APIHistoryOperate(GeneralOperate):
 |> aggregateWindow(every: {period}, fn: {fn})
 |> fill(usePrevious: true)
 |> filter(fn:(r) => r._field == "value")"""
+        result = self.query_object_history(stmt=stmt)
+        if limit is not None:
+            result = result[skip:skip + limit]
+        else:
+            result = result[skip:]
+        return result
+
+    def object_fail_hour(self, _id: str = ""):
+        id_str = ""
+        if _id != "":
+            id_str = f"""|> filter(fn:(r) => r.id == "{_id}")"""
+        stmt = f"""from(bucket:"node_object")
+    |> range(start: 0)
+    |> filter(fn:(r) => r._measurement == "object_value")
+    {id_str}
+    |> filter(fn:(r) => r._field == "value")"""
+        result = self.query_object_history(stmt=stmt)
+        start = math.inf
+        end = time.time()
+        fail_start = 0
+        fail_second = 0
+        value = 0
+        times = 0
+        result = sorted(result, key=lambda x: x["timestamp"])
+        for i in result:
+            if i["timestamp"] < start:
+                start = i["timestamp"]
+            if str(int(i["value"])) == "1" and value == 0:
+                value = 1
+                times += 1
+                fail_start = i["timestamp"]
+            if str(int(i["value"])) == "0" and value == 1:
+                value = 0
+                fail_second += i["timestamp"] - fail_start
+                fail_start = end
+        fail_second += end - fail_start
+        if times == 0:
+            return 0
+        else:
+            r = (end - start - fail_second)/times/3600
+        return r
+
+    def query_object_history(self, stmt: str):
         d = self.query(q=stmt)
         result = []
         for table in d:
@@ -50,8 +96,4 @@ class APIHistoryOperate(GeneralOperate):
                         "timestamp": record.get_time().timestamp(),
                     }
                 )
-        if limit is not None:
-            result = result[skip:skip + limit]
-        else:
-            result = result[skip:]
         return result
