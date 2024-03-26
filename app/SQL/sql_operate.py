@@ -1,9 +1,9 @@
 from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
 from sqlalchemy import delete
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import UnmappedInstanceError
-from pydantic import BaseModel
 
 
 class SQLOperate:
@@ -57,6 +57,8 @@ class SQLOperate:
     def update_multiple_sql_data(self, db: Session, update_list: list, sql_model):
         update_data_dict = dict()
         update_data_id_set = set()
+        if not update_list:
+            return []
         try:
             for update_data in update_list:
                 update_data_dict[update_data.id] = update_data
@@ -80,10 +82,10 @@ class SQLOperate:
             return sql_data_list
         except IntegrityError as e:
             code, msg = e.orig.args
-            if code == 1452:
+            if code in [1062, 1406, 1452]:
                 raise self.exc(status_code=403, detail=msg)
-            elif code == 1406:
-                raise self.exc(status_code=403, detail=msg)
+            else:
+                raise self.exc(status_code=403, detail="Unrecognized SQL error")
         except UnmappedInstanceError:
             raise self.exc(status_code=404, detail=f"id: one or more of {update_data_id_set} is not exist")
 

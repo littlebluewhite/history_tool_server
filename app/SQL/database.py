@@ -13,7 +13,7 @@ class SQLDB:
         self.url = f"mysql+pymysql://{self.user}:{self.password}" \
                    f"@{self.host}:{self.port}/{self.db}"
         # self.url = "postgresql://postgres:123456@localhost:5432/dispatch"
-        self.engine = create_engine(self.url, echo=True)
+        self.engine = create_engine(self.url, echo=True, max_overflow=100)
 
     def get_engine(self):
         return self.engine

@@ -15,6 +15,7 @@ class GeneralOperate(RedisOperate, SQLOperate, InfluxOperate):
     def __init__(self, module, redis_db: redis.Redis, influxdb: InfluxDB, exc):
         self.module = module
         self.redis_tables = module.redis_tables
+        self.sql_model = module.sql_model
         self.main_schemas = module.main_schemas
         self.create_schemas = module.create_schemas
         self.update_schemas = module.update_schemas
@@ -85,8 +86,14 @@ class GeneralOperate(RedisOperate, SQLOperate, InfluxOperate):
     def read_all_data_from_redis(self, table_index: int = 0) -> list:
         return RedisOperate.read_redis_all_data(self, self.redis_tables[table_index]["name"])
 
-    def read_data_from_redis_by_key_set(self, key_set: set, table_index: int = 0) -> list:
+    def read_from_redis_by_key_set(self, key_set: set, table_index: int = 0) -> list:
         return RedisOperate.read_redis_data(self, self.redis_tables[table_index]["name"], key_set)
+
+    def read_from_redis_by_key_set_without_exception(self, key_set: set, table_index: int = 0) -> list:
+        return RedisOperate.read_redis_data_without_exception(self, self.redis_tables[table_index]["name"], key_set)
+
+    def read_from_redis_by_key_set_return_dict(self, key_set: set, table_index: int = 0) -> dict:
+        return RedisOperate.read_redis_return_dict(self, self.redis_tables[table_index]["name"], key_set)
 
     def read_table_count(self):
         return self.read_redis_data("count", {self.module.name})[0]
@@ -99,7 +106,7 @@ class GeneralOperate(RedisOperate, SQLOperate, InfluxOperate):
 
     def update_data(self, db: Session, update_list: list) -> list:
         # 取得更新前的self reference id
-        original_data_list = self.read_data_from_redis_by_key_set({i.id for i in update_list})
+        original_data_list = self.read_from_redis_by_key_set({i.id for i in update_list})
         self_ref_id_dict = self.get_self_ref_id([self.main_schemas(**i) for i in original_data_list])
         # 取得更新前的many to many reference id
         many_ref_id_dict = self.get_many2many_ref_id(db, {i.id for i in update_list})
@@ -189,7 +196,7 @@ class GeneralOperate(RedisOperate, SQLOperate, InfluxOperate):
         return result
 
     def combine_sql_command(self, where_command):
-        return f"select id from {self.sql_model.sql_table_name} {where_command}"
+        return f"select id from {self.sql_model.__tablename__} {where_command}"
 
     def execute_sql_where_command(self, db: Session, where_command) -> set:
         stmt = self.combine_sql_command(where_command)

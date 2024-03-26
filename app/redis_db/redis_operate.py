@@ -54,7 +54,7 @@ class RedisOperate:
                         original_data = self.redis.hget(table_name, item)
                         if original_data:
                             value_list = json.loads(original_data)
-                        set_items.extend((item, json.dumps(list(set(value_list+[row.id])))))
+                        set_items.extend((item, json.dumps(list(set(value_list + [row.id])))))
                 # sql type 是單一值的情況
                 else:
                     item = getattr(row, key)
@@ -64,13 +64,22 @@ class RedisOperate:
                         original_data = self.redis.hget(table_name, item)
                         if original_data:
                             value_list = json.loads(original_data)
-                        set_items.extend((item, json.dumps(list(set(value_list+[row.id])))))
+                        set_items.extend((item, json.dumps(list(set(value_list + [row.id])))))
 
             result.append(row)
         # 統一set data
-        print(set_items)
-        self.redis.hset(table_name, items=set_items)
+        if set_items:
+            self.redis.hset(table_name, items=set_items)
         return result
+
+    def read_redis_return_dict(self, table_name: str, key_set: set) -> dict:
+        if not key_set:
+            return dict()
+        key_list = list(key_set)
+        raw_data = self.redis.hmget(table_name, key_list)
+        # return {key.decode("utf-8"): json.loads(value.decode("utf-8"))
+        #         for key, value in raw_data.items()}
+        return {key: json.loads(data.decode("utf-8")) for key, data in zip(key_list, raw_data)}
 
     def read_redis_all_data(self, table_name: str) -> list[dict]:
         result = []
@@ -78,7 +87,15 @@ class RedisOperate:
             result.append(json.loads(datum))
         return result
 
+    def read_redis_data_without_exception(self, table_name: str, key_set: set) -> list:
+        if not key_set:
+            return list()
+        raw_data = self.redis.hmget(table_name, list(key_set))
+        return [json.loads(data) for data in raw_data if data is not None]
+
     def read_redis_data(self, table_name: str, key_set: set) -> list:
+        if not key_set:
+            return list()
         raw_data = self.redis.hmget(table_name, list(key_set))
         if None in raw_data:
             raise self.exc(status_code=404, detail=f"id:{key_set} is not exist")

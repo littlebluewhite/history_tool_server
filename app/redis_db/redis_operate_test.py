@@ -61,4 +61,31 @@ def test_delete_redis_data(redis_operate):
 
     # Assertions to verify the deletion
     assert not redis_operate.redis.hexists("test_table", "test_key"), "The key should be deleted from Redis."
-# Add more tests as needed to cover other methods and scenarios
+
+
+def test_read_redis_return_dict(redis_operate):
+    """Test reading all data from Redis and returning it as a dictionary."""
+    # Pre-populate Redis with test data
+    redis_operate.redis.hset("test_table_dict", "key1", json.dumps({"id": "key1", "value": "value1"}))
+    redis_operate.redis.hset("test_table_dict", "key2", json.dumps({"id": "key2", "value": "value2"}))
+
+    # Execute the function under test
+    result_dict = redis_operate.read_redis_return_dict("test_table_dict")
+
+    # Assertions to verify the data is correctly returned as a dictionary
+    assert len(result_dict) == 2, "Should contain two keys"
+    assert json.loads(result_dict[b"key1"]) == {"id": "key1", "value": "value1"}, "Mismatched value for key1"
+    assert json.loads(result_dict[b"key2"]) == {"id": "key2", "value": "value2"}, "Mismatched value for key2"
+
+
+def test_read_redis_data_without_exception(redis_operate):
+    """Test reading specified data from Redis without raising an exception for missing keys."""
+    # Pre-populate Redis with test data
+    redis_operate.redis.hset("test_table_no_exception", "existing_key", json.dumps({"id": "existing_key", "value": "existing_value"}))
+
+    # Attempt to read both existing and non-existing keys
+    result_list = redis_operate.read_redis_data_without_exception("test_table_no_exception", {"existing_key", "non_existing_key"})
+
+    # Assertions to verify that data for the existing key is returned and the non-existing key is silently ignored
+    assert len(result_list) == 1, "Should return data for the existing key only"
+    assert result_list[0] == {"id": "existing_key", "value": "existing_value"}, "Mismatched data for existing_key"
