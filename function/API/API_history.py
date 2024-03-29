@@ -35,12 +35,12 @@ class APIHistoryOperate(GeneralOperate):
         stmt = f"""from(bucket:"node_object")
 |> range(start: {start}{stop_str})
 |> filter(fn:(r) => r._measurement == "object_value")
+|> filter(fn:(r) => r._field == "value")
 {id_str}
 {uid_str}
 {moving_str}
 |> aggregateWindow(every: {period}, fn: {fn})
-|> fill(usePrevious: true)
-|> filter(fn:(r) => r._field == "value")"""
+|> fill(usePrevious: true)"""
         result = self.query_object_history(stmt=stmt)
         if limit is not None:
             result = result[skip:skip + limit]
