@@ -2,13 +2,13 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from general_operator.app.SQL.database import SQLDB
+from general_operator.app.influxdb.influxdb import InfluxDB
+from general_operator.app.redis_db.redis import RedisDB
+from general_operator.function.exception import GeneralOperatorException
 
 import data.API.API_history
-from app.SQL.database import SQLDB
 from app.config.loader import ConfigLoader
-from function.exception import HistoryException
-from app.influxdb.influxdb import InfluxDB
-from app.redis_db.redis import RedisDB
 from routers.API.API_history import APIHistoryRouter
 
 # config handle
@@ -28,7 +28,7 @@ app.add_middleware(
 redis_db = RedisDB(config["redis"]).redis_client()
 
 # SQL DB
-db = SQLDB(config["sql"])
+db = (SQLDB(config["sql"]))
 #   create SQL models
 # models.Base.metadata.create_all(bind=db.get_engine())
 
@@ -40,11 +40,11 @@ db_session = db.new_db_session()
 
 # router
 app.include_router(APIHistoryRouter(data.API.API_history, redis_db, influxdb,
-                                    HistoryException, db_session).create())
+                                    GeneralOperatorException, db_session).create())
 
 
-@app.exception_handler(HistoryException)
-async def unicorn_exception_handler(request: Request, exc: HistoryException):
+@app.exception_handler(GeneralOperatorException)
+async def unicorn_exception_handler(request: Request, exc: GeneralOperatorException):
     return JSONResponse(
         status_code=exc.status_code,
         content={"message": f"{exc.detail}"},
@@ -53,7 +53,7 @@ async def unicorn_exception_handler(request: Request, exc: HistoryException):
 
 @app.get("/exception")
 async def test_exception():
-    raise HistoryException(status_code=423, detail="test exception")
+    raise GeneralOperatorException(status_code=423, detail="test exception")
 
 
 if __name__ == "__main__":

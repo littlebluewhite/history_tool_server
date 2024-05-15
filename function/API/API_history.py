@@ -1,8 +1,9 @@
 import math
 import time
 
+from general_operator.function.General_operate import GeneralOperate
+
 from data.enum.fn import FnEnum
-from function.General_operate import GeneralOperate
 
 
 class APIHistoryOperate(GeneralOperate):
@@ -78,12 +79,12 @@ class APIHistoryOperate(GeneralOperate):
                 fail_start = end
         fail_second += end - fail_start
         if times == 0:
-            return 0
+            return "infinity"
         else:
-            r = (end - start - fail_second)/times/3600
+            r = (end - start - fail_second) / times / 3600
         return r
 
-    def query_object_history(self, stmt: str):
+    def query_object_history(self, stmt: str) -> list:
         d = self.query(q=stmt)
         result = []
         for table in d:
@@ -97,3 +98,45 @@ class APIHistoryOperate(GeneralOperate):
                     }
                 )
         return result
+
+    def object_switch_times(self, start: str, stop: str, _ids: list[str]) -> dict[str, int]:
+        stop_str = ""
+        if stop != "":
+            stop_str = f", stop : {stop}"
+        ids_str = """|> filter(fn:(r) => """
+        combine = " or ".join([f'''r.id == "{_id}"''' for _id in _ids])+")"
+        ids_str += combine
+        stmt = f"""from(bucket:"node_object")
+|> range(start: {start}{stop_str})
+|> filter(fn:(r) => r._measurement == "object_value")
+|> filter(fn:(r) => r._field == "value")
+{ids_str}"""
+        d = self.query(q=stmt)
+        result = dict()
+        for table in d:
+            r = []
+            for record in table.records:
+                r.append(
+                    {
+                        "id": record.values.get("id"),
+                        "uid": record.values.get("uid"),
+                        "value": record.get_value(),
+                        "timestamp": record.get_time().timestamp(),
+                    }
+                )
+            r = sorted(r, key=lambda x: x["timestamp"])
+            error_times = self.__check_error_times(r)
+            result[r[0]["id"]] = error_times
+        return result
+
+    @staticmethod
+    def __check_error_times(records) -> int:
+        times = 0
+        flag = False
+        for i in records:
+            if str(int(i["value"])) == "1" and not flag:
+                times += 1
+                flag = True
+            if str(int(i["value"])) == "0" and flag:
+                flag = False
+        return times

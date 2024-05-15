@@ -1,6 +1,8 @@
-import redis
+from typing import Annotated
 
-from app.influxdb.influxdb import InfluxDB
+import redis
+from general_operator.app.influxdb.influxdb import InfluxDB
+
 from data.enum.fn import FnEnum
 from function.API.API_history import APIHistoryOperate
 from sqlalchemy.orm import sessionmaker
@@ -35,8 +37,17 @@ class APIHistoryRouter(APIHistoryOperate):
                 raise self.exc(status_code=499, detail=f"{e}")
 
         @router.get("/object/fail_hour/")
-        async def get_fail_hour(_id: str = Query("")):
+        async def get_fail_hour(_id: Annotated[str, Query()] = ""):
             result = self.object_fail_hour(_id)
+            print(result)
+            return JSONResponse(result)
+
+        @router.get("/object/switch_times/")
+        async def get_switch_times(
+                _ids: Annotated[list[str] | None, Query()] = ...,
+                start: Annotated[str, Query()] = ..., stop: Annotated[str, Query()] = "",
+        ):
+            result = self.object_switch_times(start, stop, _ids)
             return JSONResponse(result)
 
         return router
