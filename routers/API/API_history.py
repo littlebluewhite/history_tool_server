@@ -46,8 +46,9 @@ class APIHistoryRouter(APIHistoryOperate):
         async def get_switch_times(
                 _ids: Annotated[list[str] | None, Query()] = ...,
                 start: Annotated[str, Query()] = ..., stop: Annotated[str, Query()] = "",
+                trigger_value: Annotated[str, Query()] = ..., recover_value: Annotated[str, Query()] = ...
         ):
-            result = self.object_switch_times(start, stop, _ids)
+            result = self.object_switch_times(start, stop, trigger_value, recover_value, _ids)
             return JSONResponse(result)
 
         return router
