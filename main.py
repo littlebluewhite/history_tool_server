@@ -32,7 +32,6 @@ db = (SQLDB(config["sql"]))
 #   create SQL models
 # models.Base.metadata.create_all(bind=db.get_engine())
 
-print(config["influxdb"])
 # Influx DB
 influxdb = InfluxDB(config["influxdb"])
 

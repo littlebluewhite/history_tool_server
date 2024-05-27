@@ -45,10 +45,14 @@ class APIHistoryRouter(APIHistoryOperate):
         @router.get("/object/switch_times/")
         async def get_switch_times(
                 _ids: Annotated[list[str] | None, Query()] = ...,
-                start: Annotated[str, Query()] = ..., stop: Annotated[str, Query()] = "",
-                trigger_value: Annotated[str, Query()] = ..., recover_value: Annotated[str, Query()] = ...
+                start: Annotated[str, Query()] = ...,
+                period: Annotated[list[int] | None, Query()] = None,
+                stop: Annotated[str, Query()] = "",
+                recover_value: Annotated[str, Query()] = ...
         ):
-            result = self.object_switch_times(start, stop, trigger_value, recover_value, _ids)
+            if period is None:
+                period = []
+            result = self.object_switch_times(start, period, stop, recover_value, _ids)
             return JSONResponse(result)
 
         return router

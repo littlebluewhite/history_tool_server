@@ -99,8 +99,8 @@ class APIHistoryOperate(GeneralOperate):
                 )
         return result
 
-    def object_switch_times(self, start: str, stop: str, trigger_value: str, recover_value: str,
-                            _ids: list[str]) -> dict[str, int]:
+    def object_switch_times(self, start: str, period: list[int], stop: str, recover_value: str,
+                            _ids: list[str]) -> dict[int, dict[str, any]]:
         stop_str = ""
         if stop != "":
             stop_str = f", stop : {stop}"
@@ -112,7 +112,6 @@ class APIHistoryOperate(GeneralOperate):
 |> filter(fn:(r) => r._measurement == "object_value")
 |> filter(fn:(r) => r._field == "value")
 {ids_str}"""
-        print(stmt)
         d = self.query(q=stmt)
         result = dict()
         for table in d:
@@ -127,18 +126,29 @@ class APIHistoryOperate(GeneralOperate):
                     }
                 )
             r = sorted(r, key=lambda x: x["timestamp"])
-            error_times = self.__check_error_times(r, trigger_value, recover_value)
-            result[r[0]["id"]] = error_times
+            period2 = period.copy()
+            if r:
+                period2 = [r[0]["timestamp"]]+period2
+            error_times = self.__check_error_times(r, period2, recover_value)
+            last_value = r[-1]["value"]
+            result[r[0]["id"]] = {
+                "error_times": error_times,
+                "last_value": last_value
+            }
         return result
 
     @staticmethod
-    def __check_error_times(records, trigger_value: str, recover_value: str) -> int:
-        times = 0
+    def __check_error_times(records, period, recover_value: str) -> list[int]:
+        result = [0 for i in period]
+        check = 1
         flag = False
-        for i in records:
-            if str(int(i["value"])) == trigger_value and not flag:
-                times += 1
+        for r in records:
+            if str(int(r["value"])) != recover_value and not flag:
+                while check < len(period) and period[check] < r["timestamp"]:
+                    check += 1
+                for i in range(0, check):
+                    result[i] += 1
                 flag = True
-            if str(int(i["value"])) == recover_value and flag:
+            if str(int(r["value"])) == recover_value and flag:
                 flag = False
-        return times
+        return result
