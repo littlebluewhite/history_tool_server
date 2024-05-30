@@ -55,4 +55,15 @@ class APIHistoryRouter(APIHistoryOperate):
             result = self.object_switch_times(start, period, stop, recover_value, _ids)
             return JSONResponse(result)
 
+        @router.get("/object/trigger_seconds/")
+        async def get_trigger_seconds(
+                _ids: Annotated[list[str] | None, Query()] = None,
+                _uids: Annotated[list[str] | None, Query()] = None,
+                start: Annotated[int, Query()] = ...,
+                stop: Annotated[int, Query()] = ...,
+                trigger_value: Annotated[str, Query()] = ...
+        ):
+            result = self.get_trigger_seconds(trigger_value, start, stop, _ids, _uids)
+            return JSONResponse(result)
+
         return router
