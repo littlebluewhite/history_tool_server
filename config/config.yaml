@@ -12,7 +12,7 @@ sql:
   password: 123456
   db: test_db
 influxdb:
-  host: 192.168.1.11
+  host: 192.168.1.250
   port: 8086
   org: my-org
   token: my-super-influxdb-auth-token
@@ -26,6 +26,5 @@ testSQL:
 
 server:
   port: 9488
-  version: 1.4.2
   rear_timeout: 300  # s
   write_timeout: 300  # s

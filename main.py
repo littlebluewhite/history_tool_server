@@ -14,7 +14,7 @@ from routers.API.API_history import APIHistoryRouter
 # config handle
 config = ConfigLoader("./config/config.yaml").get_config()
 
-app = FastAPI(title="history_tool", version=config["server"]["version"])
+app = FastAPI(title="history_tool", version="1.4.3")
 
 app.add_middleware(
     CORSMiddleware,

@@ -108,11 +108,9 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
         uid_str = ""
         if uid != "":
             uid_str = f"""|> filter(fn:(r) => r.uid == "{uid}")"""
-        moving_str = ""
         match fn:
             case FnEnum.mean:
-                fn = "last"
-                moving_str = f"|> timedMovingAverage(every: {period}, period: {period})"
+                fn = "mean"
             case FnEnum.max:
                 fn = "max"
             case FnEnum.last:
@@ -123,7 +121,6 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
 |> filter(fn:(r) => r._field == "value")
 {id_str}
 {uid_str}
-{moving_str}
 |> aggregateWindow(every: {period}, fn: {fn})
 |> fill(usePrevious: true)"""
         result = self.query_object_history(stmt=stmt)
@@ -217,7 +214,7 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
             _ids = []
         if _uids is None:
             _uids = []
-        start = start - self.query_before_seconds
+        query_start = start - self.query_before_seconds
         stop_str = ""
         if stop != "":
             stop_str = f", stop : {stop}"
@@ -226,7 +223,7 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
         combine2 = " or ".join([f'''r.uid == "{_uid}"''' for _uid in _uids]) + ")"
         ids_str = ids_str + combine + combine2
         stmt = f"""from(bucket:"node_object")
-|> range(start: {start}{stop_str})
+|> range(start: {query_start}{stop_str})
 |> filter(fn:(r) => r._measurement == "object_value")
 |> filter(fn:(r) => r._field == "value")
 {ids_str}"""
