@@ -8,13 +8,14 @@ from general_operator.app.redis_db.redis import RedisDB
 from general_operator.function.exception import GeneralOperatorException
 
 import data.API.API_history
+import version
 from app.config.loader import ConfigLoader
 from routers.API.API_history import APIHistoryRouter
 
 # config handle
 config = ConfigLoader("./config/config.yaml").get_config()
 
-app = FastAPI(title="history_tool", version="1.4.3")
+app = FastAPI(title="history_tool", version=version.version)
 
 app.add_middleware(
     CORSMiddleware,
