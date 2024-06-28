@@ -4,7 +4,6 @@ redis:
   user:
   password:
   db: 0
-  is_cluster: False
 sql:
   host: 127.0.0.1
   port: 3306
