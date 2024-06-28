@@ -12,7 +12,7 @@ sql:
   password: 123456
   db: test_db
 influxdb:
-  host: 192.168.1.250
+  host: 127.0.0.1
   port: 8086
   org: my-org
   token: my-super-influxdb-auth-token

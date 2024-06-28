@@ -95,19 +95,26 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
         GeneralOperate.__init__(self, module, redis_db, influxdb, exc)
         self.query_before_seconds = 60 * 60 * 24 * 3
 
-    def read_object_value_history(self, start: str, stop: str, _id: str = "",
-                                  uid: str = "", period: str = "",
+    def read_object_value_history(self, start: str, stop: str, _ids: list[str] = None,
+                                  uids: list[str] = None, period: str = "",
                                   fn: FnEnum = FnEnum.mean, skip: int = 0,
                                   limit: int = None):
         stop_str = ""
         if stop != "":
             stop_str = f", stop : {stop}"
-        id_str = ""
-        if _id != "":
-            id_str = f"""|> filter(fn:(r) => r.id == "{_id}")"""
-        uid_str = ""
-        if uid != "":
-            uid_str = f"""|> filter(fn:(r) => r.uid == "{uid}")"""
+        if _ids is None:
+            ids_str = ""
+        else:
+            ids_str = """|> filter(fn:(r) => """
+            combine = " or ".join([f'''r.id == "{_id}"''' for _id in _ids]) + ")"
+            ids_str += combine
+
+        if uids is None:
+            uids_str = ""
+        else:
+            uids_str = """|> filter(fn:(r) => """
+            combine = " or ".join([f'''r.uid == "{_uid}"''' for _uid in uids]) + ")"
+            uids_str += combine
         match fn:
             case FnEnum.mean:
                 fn = "mean"
@@ -119,8 +126,8 @@ class APIHistoryOperate(GeneralOperate, APIHistoryFunction):
 |> range(start: {start}{stop_str})
 |> filter(fn:(r) => r._measurement == "object_value")
 |> filter(fn:(r) => r._field == "value")
-{id_str}
-{uid_str}
+{ids_str}
+{uids_str}
 |> aggregateWindow(every: {period}, fn: {fn})
 |> fill(usePrevious: true)"""
         result = self.query_object_history(stmt=stmt)

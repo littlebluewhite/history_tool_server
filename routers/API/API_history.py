@@ -25,11 +25,11 @@ class APIHistoryRouter(APIHistoryOperate):
 
         @router.get("/object/", response_model=list)
         async def get_history_value(
-                start: str = Query(...), stop: str = Query(""), _id: str = Query(""),
-                uid: str = Query(""), period: str = Query("1h"), fn: FnEnum = Query(...),
+                start: str = Query(...), stop: str = Query(""), _ids: list[str] = Query(None),
+                uids: list[str] = Query(None), period: str = Query("1h"), fn: FnEnum = Query(...),
                 skip: int = Query(0), limit: int = Query(None)):
             try:
-                data = self.read_object_value_history(start, stop, _id, uid, period, fn, skip, limit)
+                data = self.read_object_value_history(start, stop, _ids, uids, period, fn, skip, limit)
                 return JSONResponse(data)
             # return data
             except Exception as e:
