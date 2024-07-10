@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from general_operator.app.SQL.database import SQLDB
 from general_operator.app.influxdb.influxdb import InfluxDB
-from general_operator.app.redis_db.redis import RedisDB
+from general_operator.app.redis_db.redis_db import RedisDB
 from general_operator.function.exception import GeneralOperatorException
 
 import data.API.API_history
