@@ -44,11 +44,11 @@ class APIHistoryRouter(APIHistoryOperate):
 
         @router.get("/object/switch_times/")
         async def get_switch_times(
-                _ids: Annotated[list[str] | None, Query()] = ...,
-                start: Annotated[str, Query()] = ...,
+                _ids: Annotated[list[str] | None, Query()],
+                start: Annotated[str, Query()],
+                recover_value: Annotated[str, Query()],
                 period: Annotated[list[int] | None, Query()] = None,
-                stop: Annotated[str, Query()] = "",
-                recover_value: Annotated[str, Query()] = ...
+                stop: Annotated[str, Query()] = ""
         ):
             if period is None:
                 period = []
@@ -57,11 +57,11 @@ class APIHistoryRouter(APIHistoryOperate):
 
         @router.get("/object/trigger_seconds/")
         async def get_trigger_seconds(
+                start: Annotated[int, Query()],
+                stop: Annotated[int, Query()],
+                trigger_value: Annotated[str, Query()],
                 _ids: Annotated[list[str] | None, Query()] = None,
-                _uids: Annotated[list[str] | None, Query()] = None,
-                start: Annotated[int, Query()] = ...,
-                stop: Annotated[int, Query()] = ...,
-                trigger_value: Annotated[str, Query()] = ...
+                _uids: Annotated[list[str] | None, Query()] = None
         ):
             result = self.get_trigger_seconds(trigger_value, start, stop, _ids, _uids)
             return JSONResponse(result)
